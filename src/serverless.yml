@@ -1,0 +1,38 @@
+service: food-control
+
+package:
+  individually: true
+  excludeDevDependencies: false
+  exclude:
+    - ./**
+
+provider:
+  name: aws
+  runtime: python3.12
+  architecture: arm64
+  region: "sa-east-1"
+  stage: ${opt:stage, "dev"}
+  logRetentionInDays: 7
+  memorySize: 512
+  environment:
+    COGNITO_USER_POOL_ID: { Ref: CognitoUserPool }
+    COGNITO_CLIENT_ID: { Ref: CognitoUserPoolClient }
+    SES_EMAIL_SENDER: kaueslim@outlook.com
+    S3_PRODUCTS_BUCKET: products-covers
+
+plugins:
+  - serverless-iam-roles-per-function
+
+functions:
+  - ${file(handlers/http/login/_routes.yml)}
+  - ${file(handlers/http/orders/_routes.yml)}
+  - ${file(handlers/http/products/_routes.yml)}
+
+resources:
+  Resources:
+    CognitoUserPool: ${file(../infra/resources/auth.yml):CognitoUserPool}
+    CognitoUserPoolClient: ${file(../infra/resources/auth.yml):CognitoUserPoolClient}
+    ApiGatewayRestApi: ${file(../infra/resources/gateway.yml):ApiGatewayRestApi}
+    ApiGatewayAuthorizer: ${file(../infra/resources/gateway.yml):ApiGatewayAuthorizer}
+    GatewayResponseDefault4XX: ${file(../infra/resources/gateway.yml):GatewayResponseDefault4XX}
+    GatewayResponseDefault5XX: ${file(../infra/resources/gateway.yml):GatewayResponseDefault5XX}

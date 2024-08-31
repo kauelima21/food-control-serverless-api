@@ -1,0 +1,76 @@
+fetchProducts:
+  name: fetch_products_${self:provider.stage}
+  handler: handlers/http/products/fetch_products.handle
+  events:
+    - http:
+        path: admin/products
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: products
+        method: get
+        cors: true
+    - http:
+        path: products/{product_id}
+        method: get
+        cors: true
+#        authorizer:
+#          type: COGNITO_USER_POOLS
+#          authorizerId:
+#            Ref: ApiGatewayAuthorizer
+  package:
+    patterns:
+      - ./handlers/http/products/fetch_products.py
+      - ./libraries/**
+  iamRoleStatementsName: fetch_products_${self:provider.stage}_lambda_role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:Scan
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/products
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/products/*
+
+saveProduct:
+  name: save_product_${self:provider.stage}
+  handler: handlers/http/products/save_product.handle
+  events:
+    - http:
+        path: admin/products
+        method: post
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: admin/products/upload
+        method: post
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+  package:
+    patterns:
+      - ./handlers/http/products/save_product.py
+      - ./libraries/**
+  iamRoleStatementsName: save_product_${self:provider.stage}_lambda_role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/products
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::${self:provider.environment.S3_PRODUCTS_BUCKET}/*
+

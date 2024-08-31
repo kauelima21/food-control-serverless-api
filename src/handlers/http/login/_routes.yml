@@ -1,0 +1,29 @@
+login:
+  name: login_${self:provider.stage}
+  handler: handlers/http/login/login.handle
+  events:
+    - http:
+        path: sign-in
+        method: post
+        cors: true
+    - http:
+        path: sign-up
+        method: post
+        cors: true
+  package:
+    patterns:
+      - ./handlers/http/login/login.py
+      - ./libraries/**
+  iamRoleStatementsName: login_${self:provider.stage}_lambda_role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminGetUser
+        - cognito-idp:AdminUpdateUserAttributes
+        - cognito-idp:AdminConfirmSignUp
+      Resource:
+        - arn:aws:cognito-idp:${self:provider.region}:*:userpool/*
+#    - Effect: "Allow"
+#      Action:
+#        - ses:SendEmail
+#      Resource: "*"

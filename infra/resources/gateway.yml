@@ -1,0 +1,35 @@
+ApiGatewayRestApi:
+  Type: AWS::ApiGateway::RestApi
+  Properties:
+    Name: ${self:service}-${self:provider.stage}
+
+ApiGatewayAuthorizer:
+  Type: "AWS::ApiGateway::Authorizer"
+  Properties:
+    Name: CognitoAuthorizer
+    IdentitySource: method.request.header.Authorization
+    RestApiId:
+      Ref: ApiGatewayRestApi
+    Type: COGNITO_USER_POOLS
+    ProviderARNs:
+      - Fn::GetAtt: [CognitoUserPool, Arn]
+
+GatewayResponseDefault4XX:
+  Type: "AWS::ApiGateway::GatewayResponse"
+  Properties:
+    ResponseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+    ResponseType: DEFAULT_4XX
+    RestApiId:
+      Ref: "ApiGatewayRestApi"
+
+GatewayResponseDefault5XX:
+  Type: "AWS::ApiGateway::GatewayResponse"
+  Properties:
+    ResponseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+    ResponseType: DEFAULT_5XX
+    RestApiId:
+      Ref: "ApiGatewayRestApi"

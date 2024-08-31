@@ -1,0 +1,121 @@
+fetchOrders:
+  name: fetch_orders_${self:provider.stage}
+  handler: handlers/http/orders/fetch_orders.handle
+  events:
+    - http:
+        path: admin/orders
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: customers/{customer}/orders
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+  package:
+    patterns:
+      - ./handlers/http/orders/fetch_orders.py
+      - ./libraries/**
+  iamRoleStatementsName: fetch_orders_${self:provider.stage}_lambda_role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:Scan
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/orders
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/orders/*
+
+orderMetrics:
+  name: order_metrics_${self:provider.stage}
+  handler: handlers/http/orders/order_metrics.handle
+  events:
+    - http:
+        path: metrics/day-orders-amount
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: metrics/month-revenue
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: metrics/month-canceled-orders-amount
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: metrics/month-orders-amount
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: metrics/popular-products
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+    - http:
+        path: metrics/daily-receipt-in-period
+        method: get
+        cors: true
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId:
+            Ref: ApiGatewayAuthorizer
+  package:
+    patterns:
+      - ./handlers/http/orders/order_metrics.py
+      - ./libraries/**
+  iamRoleStatementsName: order_metrics_${self:provider.stage}_lambda_role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:Scan
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/orders
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/orders/*
+
+saveOrder:
+  name: save_order_${self:provider.stage}
+  handler: handlers/http/orders/save_order.handle
+  events:
+    - http:
+        path: orders
+        method: post
+        cors: true
+  package:
+    patterns:
+      - ./handlers/http/orders/save_order.py
+      - ./libraries/**
+  iamRoleStatementsName: save_order_${self:provider.stage}_lambda_role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/orders
